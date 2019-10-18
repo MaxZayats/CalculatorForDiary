@@ -25,7 +25,7 @@ style=
   }
   .table_dark th {
     color: #CAD4D6;
-    border-bottom: 1px solid #999!important;;
+    border-bottom: 1px solid #999!important;
     padding: 12px 17px;
   }
   .table_dark td {
@@ -101,7 +101,7 @@ style=
   transition: .5s;
 }
 .Option{
-  background-color: rgb(37, 47, 72);
+  background-color: #222226!important; 
 }
 
 #CloseTable{
