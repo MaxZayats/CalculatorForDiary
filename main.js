@@ -10,28 +10,30 @@ style=
     padding: 10px;
     cursor: move;
     z-index: 10;
-    background-color: #252F48;
-    color: #EDB749;
+    background-color: #222226!important;
+    color: #CAD4D6;
 }
+
 .table_dark {
     font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
     font-size: 14px;
     text-align: left;
     border-collapse: collapse;
-    background: #252F48;
+    background: #222226!important;
     cursor: default;
-    
+ 
   }
   .table_dark th {
-    color: #EDB749;
-    border-bottom: 1px solid #37B5A5;
+    color: #CAD4D6;
+    border-bottom: 1px solid #999!important;;
     padding: 12px 17px;
   }
   .table_dark td {
     color: #CAD4D6;
-    border-bottom: 1px solid #37B5A5;
-    border-right:1px solid #37B5A5;
+    border-bottom: 1px solid #9990!important;;
+    border-right:1px solid #999!important;;
     padding: 7px 17px;
+    transition: .2s;
   }
   .table_dark tr:last-child td {
     border-bottom: none;
@@ -40,7 +42,8 @@ style=
     border-right: none;
   }
   .table_dark tr:hover td {
-    text-decoration: underline;
+    transition: .2s;
+    background: #333336!important;
   }
 #first{
     width: 80px;
@@ -50,12 +53,14 @@ style=
 }
 #third{
 }
-input{
+.input{
     background-color:rgba(157, 22, 181, 0);
     border-color: rgba(157, 22, 181, 0);
     color: #CAD4D6;
     width: 100%;
     font-size: 100%;
+    border:0;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
 }
 #restart{
   cursor:pointer;
@@ -65,13 +70,62 @@ input{
   left: 85%;
   top: 1%;
   font-size: 50px;
-  color: #EDB749;
+  color: #cad4d6;
 }
 #restart:hover{
-  color: wheat;
+  color: white;
   animation-delay: 0.1s;
   transition: .5s;
-  transform: rotate(360deg);
+}
+#add_extra{
+  cursor:pointer;
+  transition: .5s;
+  z-index: 100;
+  position: absolute;
+  left: 74%;
+  top: 1%;
+  font-size: 50px;
+  color: #cad4d6;
+}
+#add_extra:hover{
+  transition: .5s;
+  color: white;
+}
+.Select{
+  background-color: rgba(157, 22, 181, 0);
+  border-color: rgba(157, 22, 181, 0);
+  color: #CAD4D6;
+  font-size: 15px;
+  left: -5%;  
+  padding: 0;
+  transition: .5s;
+}
+.Option{
+  background-color: rgb(37, 47, 72);
+}
+
+#CloseTable{
+  cursor: pointer;
+  transition: .5s;
+  z-index: 100;
+  position: absolute;
+  left: 6px;
+  top: 0px;
+  font-size: 23px;
+  color: #cad4d6;
+}
+#CloseTable:hover{
+  transition: .3s;
+  color: red;
+}
+.DelExtra{
+  color: dimgrey;
+  transition: .3s;
+  width: 60px;
+}
+.DelExtra:hover{
+  color:red;
+  transition: .3s;
 }
 </style>
 `
@@ -82,6 +136,8 @@ var body = String.raw`
         <h1>Журнал</h1>
     </div>
     <div id='restart'>↻</div>
+    <div id='add_extra'>+</div>
+    <div id="CloseTable">✖</div>
   <table id='maintable' class="table_dark" style="width: 480px;">
         <tr id='names'>
           <th id='first'>Предмет</th>
@@ -143,10 +199,39 @@ $( function() {
 
 
 //основной код
-lessons=[
+
+
+les=['']; // все предеметы 
+lessons=[ // для заполнения таблицы
   ['',[],[]]// структура ['предмет',[[оценка,дата]], србал,]
-  ]; 
-$('#restart').click(function(){ 
+]; 
+function fill_Les(){
+  les=[''];
+  let all=$('.lesson span');
+  let count=all.length;
+  let YorNo=0;//0-no(add) 1-yes(no add)
+  for (let i = 0; i < count; i++) {
+    YorNo=0;
+    all[i]=all[i].innerHTML;
+    all[i]=all[i].replace(/ /g,'').replace(/\n/g,'').replace(all[i][0],'').replace(all[i][1],'');
+    for (let j = 0; j < les.length; j++) {
+      for (let k = 0; k < lessons.length; k++) {
+        if(all[i]==les[j]||all[i]==lessons[k][0]){
+          YorNo=1;
+          break
+        }
+      }  
+    }
+    if(YorNo==0){
+      les.push(all[i]);
+    }
+  }
+};
+
+var ids=1000;//уникальное id для добавления новых предметов через селект
+$('#restart').click(function(){
+  les=[''];
+  ids=1000;
   lessons=[
     ['',[],[]]// структура ['предмет',оценки, дата, србал]
   ];
@@ -168,16 +253,11 @@ $('#restart').click(function(){
       }
     };
   };
-  clearTable();
-  calculation(); 
-  console.log(lessons); 
-  lessons.sort();
-  show();
-  
   $('.input').keyup(function(){ // обновление среднего балла
+    
     value=String(calcAverange($(this).val()));
     id=String($(this).attr('id'));
-    
+    console.log(value,' ',id);
     let val=$(this).val()[$(this).val().length-1];
 
     if((!parseInt(val,10)) && (val !== '0') && (val !== ',') && (val !== ' ') && (val !== '/')){
@@ -186,12 +266,42 @@ $('#restart').click(function(){
       console.log('delete',val);
     }
     document.getElementById(id).innerHTML=value;
-    if(!isNaN(calcAvrAvr())){
+    if(!isNaN(calcAvrAvr())){ // общий ср балл
+      document.getElementById('Avr').innerHTML=calcAvrAvr();
+    }
+    
+  });
+  clearTable();
+  calculation(); 
+  console.log(lessons); 
+  lessons.sort();
+
+  fill_Les();
+
+  show();
+  
+  $('.input').keyup(function(){ // обновление среднего балла
+    
+    value=String(calcAverange($(this).val()));
+    id=String($(this).attr('id'));
+    console.log();
+    let val=$(this).val()[$(this).val().length-1];
+
+    if((!parseInt(val,10)) && (val !== '0') && (val !== ',') && (val !== ' ') && (val !== '/')){
+      $(this).val($(this).val().replace(val,''));
+      value=String(calcAverange($(this).val()));
+      console.log('delete',val);
+    }
+    document.getElementById(id).innerHTML=value;
+    if(!isNaN(calcAvrAvr())){ // общий ср балл
       document.getElementById('Avr').innerHTML=calcAvrAvr();
     }
     
   });
 });
+
+
+
 
 
 // структура ['предмет',[[оценки, дата]], србал]
@@ -288,10 +398,11 @@ function calcAverange(str){ // подсчёт среднего балла из �
 // структура ['предмет',[[оценки, дата]], србал]
 function calcAvrAvr(){ // подсчет всего среднего бала
   let sum=0;
-  for (let i = 1; i < lessons.length; i++) {  //в предметах
-    sum+=Math.round(document.getElementById(lessons[i][0]).innerHTML);
+  allPos=$('.AverangeSc');
+  for (let i = 0; i < allPos.length; i++) {  //в баллах
+    sum+=Math.round(allPos[i].innerHTML);
   };
-  return (sum/(lessons.length-1)).toFixed(3)
+  return (sum/(allPos.length)).toFixed(3)
 };
 
 
@@ -308,7 +419,7 @@ function show(){ // вывод в таблицу
     };
     addElement(String(lessons[i][0]),String(lessons[i][2]),String(marks).replace(/,/g,', ')); // вывод в таблицу
   };
-  $('#maintable tbody').append('<tr class="lessons"><td>Общий Ср.Балл</td><td style="font-size:18px" id="Avr">'+calcAvrAvr()+'</td></tr>'); 
+  $('#maintable tbody').append('<tr id="Avrs" class="lessons"><td>Общий Ср.Балл</td><td style="font-size:18px" id="Avr">'+calcAvrAvr()+'</td></tr>'); 
   //добавление последней строки с общим баллом
 };
 
@@ -319,8 +430,49 @@ function clearTable(){//очищение таблицы (используетс�
 
 
 function addElement(a,b,c){ // добавление в таблицу
-  $('#maintable tbody').append('<tr class="lessons"><td>'+a+'</td><td id="'+a+'">'+b+'</td><td><input value="'+String(c)+'" type="text" id="'+a+'" class="input"><div class="input-buffer"></div></td></tr>'); 
+  $('#maintable tbody').append('<tr class="lessons"><td>'+a+'</td><td style="padding-top: 7px;" class="AverangeSc" id="'+a+'">'+b+'</td><td style="padding-top: 5px;"><input value="'+String(c)+'" type="text" id="'+a+'" class="input"></td></tr>'); 
 };
+$('#add_extra').click(function(){
+  
+  let selectIn='';
+  for (let i = 1; i < les.length; i++) {
+    selectIn+='<option class="Option">'+les[i]+'</option>'
+  };
+  let select='<select class="Select">'+selectIn+'</select><div class="DelExtra">Удалить</div>';
+  
+  $('#Avrs').before('<tr class="lessons"><td>'+select+'</td><td style="padding-top: 21px;" class="AverangeSc" id="'+ids+'">NaN</td><td style="padding-top: 19px;" ><input type="text" id="'+ids+'" class="input"></td></tr>');
+  ids+=1;
+  $('.input').keyup(function(){ // обновление среднего балла
+    
+    value=String(calcAverange($(this).val()));
+    id=String($(this).attr('id'));
+    console.log(value,' ',id);
+    let val=$(this).val()[$(this).val().length-1];
+
+    if((!parseInt(val,10)) && (val !== '0') && (val !== ',') && (val !== ' ') && (val !== '/')){
+      $(this).val($(this).val().replace(val,''));
+      value=String(calcAverange($(this).val()));
+      console.log('delete',val);
+    }
+    document.getElementById(id).innerHTML=value;
+    if(!isNaN(calcAvrAvr())){ // общий ср балл
+      document.getElementById('Avr').innerHTML=calcAvrAvr();
+    }
+    
+  });
+  $('.DelExtra').click(function(){
+    $(this).parent().parent().remove()
+  });
+});
+
+
+
+$('#CloseTable').click(function(){
+  clearTable();
+  document.getElementById('mydiv').style="top: 859%;left: 2%;";
+  document.getElementById('maintable').style="width: 480px; height: 10px;";
+});
+
 </script>
 </body>
 `
