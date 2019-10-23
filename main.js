@@ -68,7 +68,7 @@ style=
   z-index: 100;
   position: absolute;
   left: 85%;
-  top: 1%;
+  top: 1px;
   font-size: 50px;
   color: #cad4d6;
 }
@@ -83,7 +83,7 @@ style=
   z-index: 100;
   position: absolute;
   left: 74%;
-  top: 1%;
+  top: 1px;
   font-size: 50px;
   color: #cad4d6;
 }
